@@ -1,0 +1,15 @@
+ - microcontroller ATSAMD51G19A-MU (TQFN48)
+ - RGB LED APA102_2020
+ - 3.3V regulator AP2112K-3.3TRG1
+ - 16MBit Flash memory GD25Q16CEIGR
+ - USB C plug connector (https://www.adafruit.com/product/4932)
+ - USB C jack connector (https://www.adafruit.com/product/4458)
+ - USB A jack connector (https://www.adafruit.com/product/2225)
+ - SMA antenna edge launch (https://www.adafruit.com/product/1865)
+ - LoRa 433MHz HopeRF RFM98W
+ - 4x 10uF capacitor 0603 package
+ - 3x 1uF capacitor 0603 package
+ - 2x 100kO resistor 0603 package
+ - 2x 5.1kO resistor 0603 package
+ - 2x 2.2kO resistor 0805 package
+ - 2x 10kO resistor 0805 package
