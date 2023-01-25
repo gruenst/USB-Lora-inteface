@@ -16,16 +16,22 @@ Communication adapter to any remote LoRa satellite device, e.g. remote sensing o
  ## Content
  - PCB:             EAGLE Cad PCB files, list of components
  - Housing:         3D CAD files for 3D printing
- - Circuit Python:  Bootloader .bin for ATSAMD51, Circuitpython .uf2, device code
- - GUI:             .html code with .js elements
+ - Circuit Python:  Circuitpython .uf2, device code
+ - GUI:             code.py for device, .html code with .js elements for GUI control
+ - bootaloder:      Atmel SAMD bootloader for JLink (bootloader-usb_lora-v3.13.0.bin)
+(https://learn.adafruit.com/adafruit-feather-m0-express-designed-for-circuit-py$
+
+
  
  ## Manual
  - Make PCB, solder components
  - flash bootloader using .bin file, e.g. via JLink, see https://learn.adafruit.com/how-to-program-samd-bootloaders
  - mount device via usb, put into bootloader mode, upload circuitpython .uf2 file
+ - copy circuitpython8 lib elements to /lib directory on device
+ - put code.py to device
  - upload .html file to device, adjust accordingly
  enjoy!
  
 [Grn.Solar](https://www.grn.solar)
  
- Big shoutouts to [Adafruit](https://www.adafruit.com "Adafruit rocks"), all was based on their work.
+ Big shoutouts to [Adafruit](https://www.adafruit.com "Adafruit rocks"), all is based on their work.

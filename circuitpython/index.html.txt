@@ -1,0 +1,151 @@
+<!doctype html>
+<html>
+   <head>
+
+    <style>
+      html, body{height: 100%;}
+      button{color: #ffffff;  width: 100%; font: bold 25px arial, helvetica,sans-serif;background-color:#269CE9;padding:15px}
+      button:disabled,button[disabled]{  background-color: #cccccc; }
+      table{font: 20px arial, helvetica,sans-serif; cellspacing: "2"; cellpadding: "0"; border: "0"; width="100%";}
+      td{height: 50px; }
+      input{ border: none; width: auto; height: auto;  border-bottom: 2px solid #269CE9; font: bold 25px arial, helvetica,sans-serif; text-align:center;}
+      input[type=text]:focus { background-color: #269CE9; color: #ffffff; }
+      input[type=number]:focus { background-color: #269CE9; color: #ffffff; }
+     .tab { overflow: hidden;  background-color: #f1f1f1; }
+     .tab button { background-color: #cccccc; padding: 2px 15px;}
+     .tab button.active { background-color: #269CE9; }
+
+    </style>
+     <script type = "text/javascript">
+let port;
+let reader;
+let inputDone;
+let outputStream;
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('ButtonConnect').addEventListener('click', ClickConnect);
+  if (!('serial' in navigator)) {
+    document.getElementById("ButtonConnect").disabled = true; 
+    document.getElementById("status").innerHTML= "Web Serial not supported by browser, use CHROME/EDGE/OPERA (https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API#browser_compatibility)";
+  }
+})
+
+async function connect() {
+const filters = [
+  { usbVendorId: 0x239a, usbProductId: 0x802c }
+];
+
+  port = await navigator.serial.requestPort({ filters });
+  await port.open({ baudRate: 115200 });
+  document.getElementById("ButtonMeasure").disabled = false; 
+  document.getElementById("ButtonConnect").innerHTML = "disconnect"
+    document.getElementById("status").innerHTML= ""
+  const encoder = new TextEncoderStream();
+  outputDone = encoder.readable.pipeTo(port.writable);
+  outputStream = encoder.writable;
+
+  let decoder = new TextDecoderStream();
+  inputDone = port.readable.pipeTo(decoder.writable);
+  inputStream = decoder.readable
+    .pipeThrough(new TransformStream(new LineBreakTransformer()))
+  reader = inputStream.getReader();
+  readLoop().catch((error) => {
+    document.getElementById("ButtonMeasure").disabled = true;
+    document.getElementById("ButtonConnect").innerHTML = "connect"
+    document.getElementById("status").innerHTML= "disconnected"
+  });
+}
+
+async function disconnect() {
+  if (reader) {
+    await reader.cancel();
+    await inputDone.catch(() => {});
+    reader = null;
+    inputDone = null;
+  }
+  if (outputStream) {
+    await outputStream.getWriter().close();
+    await outputDone;
+    outputStream = null;
+    outputDone = null;
+  }
+  await port.close();
+  port = null;
+  document.getElementById("ButtonMeasure").disabled = true;
+  document.getElementById("ButtonConnect").innerHTML = "connect"
+  document.getElementById("status").innerHTML= "disconnected"
+}
+
+async function readLoop() {
+  while (true) {
+    const { value, done } = await reader.read();
+    if (value) {
+      document.getElementById("status").innerHTML = "received data: << " + value + ">>";
+      if (value.startsWith('clamp')) {
+        document.getElementById("mValue").value = value.split(';')[1] + ' A';
+      }
+    }
+    if (done) {
+      reader.releaseLock();
+      break;
+    }
+  }
+}
+
+async function ClickMeasure() {
+  const writer = outputStream.getWriter();
+  writer.write("measure\n");
+  writer.releaseLock();
+}
+
+async function ClickConnect() {
+  if (port) {
+    await disconnect();
+    document.getElementById("ButtonMeasure").disabled = true;
+    document.getElementById("ButtonConnect").innerHTML = "connect"
+    document.getElementById("status").innerHTML= "disconnected"
+    return;
+  }
+  await connect();
+    document.getElementById("ButtonMeasure").disabled = false;
+    document.getElementById("ButtonConnect").innerHTML = "disconnect"
+    document.getElementById("status").innerHTML= "connected"
+}
+
+class LineBreakTransformer {
+  constructor() {
+    this.container = '';
+  }
+  transform(chunk, controller) {
+    this.container += chunk;
+    const lines = this.container.split('\n');
+    this.container = lines.pop();
+    lines.forEach(line => controller.enqueue(line));
+  }
+
+  flush(controller) {
+    controller.enqueue(this.container);
+  }
+}
+
+
+
+ 
+      </script>
+   </head>
+<body>
+  <table cellspacing="0" bgcolor="#999999" width=99.5%>
+      <tr>
+        <td>
+        <table width="100&percnt;" cellspacing="2" cellpadding="0" border="0">
+        <tr bgcolor="#fafafa" align="center" >
+          <td width="34&percnt;">
+          <input type="text" height = "65" id="mValue" value="">
+          </input></td>
+          <td width="33&percnt;"> <button style="width: 100%;" id="ButtonMeasure" onClick="ClickMeasure()" disabled=true>measure</button>  </td>  
+          <td width="33&percnt;"> <button style="width: 100%;" id="ButtonConnect" onClick="ClickConnect()">connect</button>  </td>  
+        </tr>
+      <tr><td  id="status" style="color: #ffffff; height: 10px;" colspan=3>  </td></tr>
+    </table>
+</table>
+</body></html>
+
